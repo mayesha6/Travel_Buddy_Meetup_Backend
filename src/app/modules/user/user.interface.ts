@@ -28,7 +28,7 @@ export interface IUser {
   bio?: string;
   travelInterests?: string[];
   visitedCountries?: string[];
-  location?: string;
+  address?: string;
   role: Role;
   isActive?: IsActive;
   isDeleted?: boolean;
