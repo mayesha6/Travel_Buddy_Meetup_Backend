@@ -67,16 +67,26 @@ const getNewAccessToken = catchAsync(
 );
 const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    });
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    });
+    // res.clearCookie("accessToken", {
+    //   httpOnly: true,
+    //   secure: false,
+    //   sameSite: "lax",
+    // });
+    // res.clearCookie("refreshToken", {
+    //   httpOnly: true,
+    //   secure: false,
+    //   sameSite: "lax",
+    // });
+
+    const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as "lax",
+  path: "/",
+};
+
+res.clearCookie("accessToken", cookieOptions);
+res.clearCookie("refreshToken", cookieOptions);
 
     sendResponse(res, {
       success: true,

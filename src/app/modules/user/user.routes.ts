@@ -14,20 +14,20 @@ const upload = multer();
 router.post("/register", UserControllers.createUser);
 router.get(
   "/all-users",
-  checkAuth(Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
+  checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
   UserControllers.getAllUsers
 );
 router.get("/me", checkAuth(...Object.values(Role)), UserControllers.getMe);
 router.get(
   "/:id",
-  checkAuth(Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
+  checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
   UserControllers.getSingleUser
 );
 
 
 router.patch(
   "/update-my-profile",
-  checkAuth(Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
+  checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
   multerUpload.single("file"),          // handle file upload
   parseFormDataMiddleware,              // moved middleware here
   validateRequest(updateUserZodSchema), // Zod validation
