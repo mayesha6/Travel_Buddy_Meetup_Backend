@@ -19,7 +19,7 @@ const userSchema = new Schema<IUser>(
     bio: { type: String },
     travelInterests: { type: [String], default: [] },
     visitedCountries: { type: [String], default: [] },
-    location: { type: String },
+    address: { type: String },
     role: { type: String, enum: Object.values(Role), default: Role.USER },
     isActive: {
       type: String,

@@ -40,7 +40,7 @@ export const sendEmail = async ({
         const html = await ejs.renderFile(templatePath, templateData)
         const info = await transporter.sendMail({
             from: envVars.EMAIL_SENDER.SMTP_FROM,
-            to: to,
+            to: "mayeshamumtaz14@gmail.com",
             subject: subject,
             html: html,
             attachments: attachments?.map(attachment => ({

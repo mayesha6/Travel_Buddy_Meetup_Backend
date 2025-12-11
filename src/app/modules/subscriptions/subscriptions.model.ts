@@ -1,4 +1,3 @@
-// backend/src/modules/subscription/subscription.model.ts
 import { Schema, model } from "mongoose";
 import { ISubscription } from "./subscriptions.interface";
 

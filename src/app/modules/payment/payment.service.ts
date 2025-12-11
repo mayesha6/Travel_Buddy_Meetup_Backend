@@ -2,12 +2,13 @@
 import httpStatus from "http-status-codes";
 import { Payment } from "./payment.model";
 import { PAYMENT_STATUS, IPayment } from "./payment.interface";
-import { IUser } from "../user/user.interface";
+import { IUser, Role } from "../user/user.interface";
 import { uploadBufferToCloudinary } from "../../config/cloudinary.config";
 import { sendEmail } from "../../utils/sendEmail";
 import { SSLService } from "../sslCommerz/sslCommerz.service";
 import AppError from "../../errorHelpers/AppErrors";
 import { generatePdf, IInvoiceData } from "../../utils/invoice";
+import { User } from "../user/user.model";
 
 const createPaymentIntent = async (userId: string, subscriptionId: string, amount: number) => {
   const transactionId = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -50,9 +51,8 @@ const paymentSuccess = async (query: Record<string, string>) => {
 
   if (!payment) throw new AppError(httpStatus.NOT_FOUND, "Payment not found");
 
-  // Generate invoice
   const invoiceData: IInvoiceData = {
-    bookingDate: payment.createdAt as Date,
+    paymentDate: payment.createdAt as Date,
     totalAmount: payment.amount,
     transactionId: payment.transactionId,
     userName: (payment.user as unknown as IUser).name,
@@ -63,8 +63,12 @@ const paymentSuccess = async (query: Record<string, string>) => {
   const pdfBuffer = await generatePdf(invoiceData);
   const cloudResult = await uploadBufferToCloudinary(pdfBuffer, "invoice");
   if (!cloudResult) {
-  throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to upload invoice to Cloudinary");
-}
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Failed to upload invoice to Cloudinary"
+    );
+  }
+
   await Payment.findByIdAndUpdate(payment._id, { invoiceUrl: cloudResult.secure_url });
 
   await sendEmail({
@@ -72,11 +76,16 @@ const paymentSuccess = async (query: Record<string, string>) => {
     subject: "Your Payment Invoice",
     templateName: "invoice",
     templateData: invoiceData,
-    attachments: [{ filename: "invoice.pdf", content: pdfBuffer, contentType: "application/pdf" }],
+    attachments: [
+      { filename: "invoice.pdf", content: pdfBuffer, contentType: "application/pdf" },
+    ],
   });
+
+  await User.findByIdAndUpdate(payment.user, { role: Role.PREMIUM });
 
   return { success: true, message: "Payment completed successfully" };
 };
+
 
 const paymentFail = async (query: Record<string, string>) => {
   await Payment.findOneAndUpdate({ transactionId: query.transactionId }, { status: PAYMENT_STATUS.FAILED, paymentGatewayData: query });

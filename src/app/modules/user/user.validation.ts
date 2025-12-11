@@ -53,4 +53,5 @@ export const updateUserZodSchema = z.object({
   travelInterests: z.array(z.string()).optional(),
   visitedCountries: z.array(z.string()).optional(),
   location: z.string().max(100, { message: "Location cannot exceed 100 characters." }).optional(),
+  picture: z.any().optional(),
 });

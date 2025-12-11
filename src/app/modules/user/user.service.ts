@@ -7,6 +7,7 @@ import { envVars } from "../../config/env";
 import { userSearchableFields } from "./user.constant";
 import AppError from "../../errorHelpers/AppErrors";
 import { QueryBuilder } from "../../utils/queryBuilder";
+import { deleteImageFromCLoudinary, uploadBufferToCloudinary } from "../../config/cloudinary.config";
 
 const createUser = async (payload: Partial<IUser>) => {
   const { email, password, ...rest } = payload;
@@ -29,6 +30,7 @@ const createUser = async (payload: Partial<IUser>) => {
     auths: [authProvider],
     ...rest,
   });
+  console.log(user);
   return user;
 };
 
@@ -40,10 +42,7 @@ const updateUser = async (
   const user = await User.findById(userId);
   if (!user) throw new AppError(404, "User not found");
 
-  if (
-    decodedToken.role === Role.USER &&
-    decodedToken.userId !== userId
-  ) {
+  if (decodedToken.role === Role.USER && decodedToken.userId !== userId) {
     throw new AppError(403, "You are not authorized");
   }
 
@@ -58,7 +57,55 @@ const updateUser = async (
     new: true,
     runValidators: true,
   });
+
   return updated;
+};
+
+export const updateMyProfile = async (
+  userId: string,
+  payload: any,
+  decodedToken: JwtPayload,
+  file?: Express.Multer.File
+) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError(404, "User not found");
+
+  if (decodedToken.role === "USER" && decodedToken.userId !== userId) {
+    throw new AppError(403, "You are not authorized");
+  }
+
+  if (payload.password) {
+    payload.password = await bcrypt.hash(
+      payload.password,
+      Number(envVars.BCRYPT_SALT_ROUND)
+    );
+  }
+
+  if (file) {
+    if (user.picture) {
+      await deleteImageFromCLoudinary(user.picture);
+    }
+
+    const uploadResult = await uploadBufferToCloudinary(file.buffer, `profile-${userId}`);
+    payload.picture = uploadResult?.secure_url;
+  }
+
+  const updated = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  return updated;
+};
+
+const upgradeToPremium = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError(404, "User not found");
+
+  user.role = Role.PREMIUM;
+  await user.save();
+
+  return user;
 };
 
 const deleteUser = async (userId: string) => {
@@ -72,7 +119,7 @@ const deleteUser = async (userId: string) => {
 };
 
 const getAllUsers = async (query: Record<string, string>) => {
-  const queryBuilder = new QueryBuilder(User.find({ isDeleted: false }), query) 
+  const queryBuilder = new QueryBuilder(User.find({ isDeleted: false }), query)
     .filter()
     .search(userSearchableFields)
     .sort()
@@ -105,6 +152,8 @@ const getMe = async (userId: string) => {
 export const UserServices = {
   createUser,
   updateUser,
+  updateMyProfile,
+  upgradeToPremium,
   getAllUsers,
   getSingleUser,
   getMe,

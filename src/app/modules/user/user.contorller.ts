@@ -1,4 +1,3 @@
-// src/modules/user/user.controller.ts
 import { Request, Response, NextFunction } from "express";
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
@@ -11,6 +10,7 @@ import { Role } from "./user.interface";
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await UserServices.createUser(req.body);
+    console.log(user);
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
@@ -38,6 +38,102 @@ const updateUser = catchAsync(
   }
 );
 
+// export const updateMyProfile = catchAsync(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     const decodedToken = req.user as JwtPayload;
+//     const userId = decodedToken.userId;
+
+//     const payload: any = { ...req.body };
+
+//     if (payload.travelInterests) {
+//       payload.travelInterests = payload.travelInterests
+//         .split(",")
+//         .map((v: string) => v.trim());
+//     }
+
+//     if (payload.visitedCountries) {
+//       payload.visitedCountries = payload.visitedCountries
+//         .split(",")
+//         .map((v: string) => v.trim());
+//     }
+
+//     const updatedUser = await UserServices.updateMyProfile(
+//       userId,
+//       payload,
+//       decodedToken,
+//       req.file 
+//     );
+
+//     sendResponse(res, {
+//       success: true,
+//       statusCode: httpStatus.OK,
+//       message: "Profile updated successfully.",
+//       data: updatedUser,
+//     });
+//   }
+// );
+
+export const updateMyProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const userId = decodedToken.userId;
+
+    const payload: any = { ...req.body };
+
+    // Ensure travelInterests is always an array
+    if (payload.travelInterests) {
+      if (typeof payload.travelInterests === "string") {
+        payload.travelInterests = payload.travelInterests
+          .split(",")
+          .map((v: string) => v.trim())
+          .filter((x: string) => x);
+      } else if (!Array.isArray(payload.travelInterests)) {
+        payload.travelInterests = [];
+      }
+    }
+
+    // Ensure visitedCountries is always an array
+    if (payload.visitedCountries) {
+      if (typeof payload.visitedCountries === "string") {
+        payload.visitedCountries = payload.visitedCountries
+          .split(",")
+          .map((v: string) => v.trim())
+          .filter((x: string) => x);
+      } else if (!Array.isArray(payload.visitedCountries)) {
+        payload.visitedCountries = [];
+      }
+    }
+
+    // Call service
+    const updatedUser = await UserServices.updateMyProfile(
+      userId,
+      payload,
+      decodedToken,
+      req.file // optional profile picture
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Profile updated successfully.",
+      data: updatedUser,
+    });
+  }
+);
+
+const upgradeToPremium = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.params.id;
+
+  const upgradedUser = await UserServices.upgradeToPremium(userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "User upgraded to premium successfully",
+    data: upgradedUser,
+  });
+});
+
 const getAllUsers = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserServices.getAllUsers(
@@ -46,7 +142,7 @@ const getAllUsers = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "All Users Retrieved Successfully",
+      message: "All Users Retrieved Successfully.",
       data: result.data,
       meta: result.meta,
     });
@@ -59,7 +155,7 @@ const getSingleUser = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "User Retrieved Successfully",
+      message: "User Retrieved Successfully.",
       data: result.data,
     });
   }
@@ -72,7 +168,7 @@ const getMe = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "Your profile Retrieved Successfully",
+      message: "Your profile Retrieved Successfully.",
       data: result.data,
     });
   }
@@ -82,11 +178,8 @@ const deleteUser = catchAsync(
     const userId = req.params.id;
     const decodedToken = req.user as JwtPayload;
 
-    if (
-      decodedToken.role === Role.USER &&
-      decodedToken.userId !== userId
-    ) {
-      throw new AppError(403, "You are not authorized to delete this user");
+    if (decodedToken.role === Role.USER && decodedToken.userId !== userId) {
+      throw new AppError(403, "You are not authorized to delete this user.");
     }
 
     const deletedUser = await UserServices.deleteUser(userId);
@@ -94,7 +187,7 @@ const deleteUser = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "User soft-deleted successfully",
+      message: "User soft-deleted successfully.",
       data: deletedUser,
     });
   }
@@ -103,8 +196,10 @@ const deleteUser = catchAsync(
 export const UserControllers = {
   createUser,
   updateUser,
+  updateMyProfile,
+  upgradeToPremium,
   getAllUsers,
   getSingleUser,
   getMe,
-  deleteUser
+  deleteUser,
 };

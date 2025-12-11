@@ -3,7 +3,7 @@ export const userSearchableFields = [
   "email",
   "phone",
   "bio",
-  "location",
+  "address",
   "travelInterests",
   "visitedCountries",
 ];

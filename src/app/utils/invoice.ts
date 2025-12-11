@@ -4,7 +4,7 @@ import AppError from "../errorHelpers/AppErrors";
 
 export interface IInvoiceData {
     transactionId: string;
-    bookingDate: Date;
+    paymentDate: Date;
     userName: string;
     tourTitle: string;
     guestCount: number;
@@ -25,7 +25,7 @@ export const generatePdf = async (invoiceData: IInvoiceData): Promise<Buffer<Arr
             doc.fontSize(20).text("Invoice", { align: "center" });
             doc.moveDown()
             doc.fontSize(14).text(`Transaction ID : ${invoiceData.transactionId}`)
-            doc.text(`Booking Date : ${invoiceData.bookingDate}`)
+            doc.text(`Payment Date : ${invoiceData.paymentDate}`)
             doc.text(`Customer : ${invoiceData.userName}`)
 
             doc.moveDown();
