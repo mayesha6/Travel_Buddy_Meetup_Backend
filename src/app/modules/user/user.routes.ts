@@ -42,8 +42,8 @@ router.patch(
 
 router.patch(
   "/:id",
-  validateRequest(updateUserZodSchema),
   checkAuth(...Object.values(Role)),
+  validateRequest(updateUserZodSchema),
   UserControllers.updateUser
 );
 router.delete(

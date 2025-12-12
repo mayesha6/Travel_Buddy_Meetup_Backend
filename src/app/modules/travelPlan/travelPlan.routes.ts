@@ -17,7 +17,7 @@ router.get("/match", validateRequest(matchQueryZodSchema), TravelPlanController.
 
 // plan CRUD
 router.get("/:id", loadPlan, TravelPlanController.getPlan);
-router.patch("/:id", checkAuth(...Object.values(Role)), loadPlan, ensureOwnerOrAdmin, validateRequest(updateTravelPlanZodSchema), TravelPlanController.updatePlan);
+router.patch("/:id", checkAuth(...Object.values(Role)), loadPlan, ensureOwnerOrAdmin,  TravelPlanController.updatePlan);
 router.delete("/:id", checkAuth(...Object.values(Role)), loadPlan, ensureOwnerOrAdmin, TravelPlanController.deletePlan);
 
 // requests
