@@ -12,6 +12,7 @@ export const checkAuth =
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       let accessToken = req.cookies?.accessToken;
+      // let accessToken = req.cookies?.accessToken || req.headers.authorization.split(" ")[1];;
 
       if (!accessToken && req.headers.authorization) {
         accessToken = req.headers.authorization.split(" ")[1];

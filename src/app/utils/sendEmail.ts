@@ -1,58 +1,139 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// /* eslint-disable @typescript-eslint/no-explicit-any */
+// import ejs from "ejs";
+// import nodemailer from "nodemailer";
+// import path from "path";
+// import { envVars } from "../config/env";
+// import AppError from "../errorHelpers/AppErrors";
+
+// const transporter = nodemailer.createTransport({
+//     // port: envVars.EMAIL_SENDER.SMTP_PORT,
+//     secure: true,
+//     auth: {
+//         user: envVars.EMAIL_SENDER.SMTP_USER,
+//         pass: envVars.EMAIL_SENDER.SMTP_PASS
+//     },
+//     port: Number(envVars.EMAIL_SENDER.SMTP_PORT),
+//     host: envVars.EMAIL_SENDER.SMTP_HOST
+// })
+
+// interface SendEmailOptions {
+//     to: string,
+//     subject: string;
+//     templateName: string;
+//     templateData?: Record<string, any>
+//     attachments?: {
+//         filename: string,
+//         content: Buffer | string,
+//         contentType: string
+//     }[]
+// }
+
+// export const sendEmail = async ({
+//     to,
+//     subject,
+//     templateName,
+//     templateData,
+//     attachments
+// }: SendEmailOptions) => {
+//     try {
+//         // const templatePath = path.join(__dirname, `templates/${templateName}.ejs`)
+//         // const html = await ejs.renderFile(templatePath, templateData)
+
+//         // Use process.cwd() instead of __dirname for Vercel
+//     const templatePath = path.join(
+//       process.cwd(),
+//       "dist/app/utils/templates",
+//       `${templateName}.ejs`
+//     );
+
+//     const html = await ejs.renderFile(templatePath, templateData || {});
+//         const info = await transporter.sendMail({
+//             from: envVars.EMAIL_SENDER.SMTP_FROM,
+//             to: "mayeshamumtaz14@gmail.com",
+//             subject: subject,
+//             html: html,
+//             attachments: attachments?.map(attachment => ({
+//                 filename: attachment.filename,
+//                 content: attachment.content,
+//                 contentType: attachment.contentType
+//             }))
+//         })
+//         console.log(`\u2709\uFE0F Email sent to ${to}: ${info.messageId}`);
+//     } catch (error: any) {
+//         console.log("email sending error", error.message);
+//         throw new AppError(401, "Email error")
+//     }
+
+// }
+
+
 import ejs from "ejs";
 import nodemailer from "nodemailer";
-import path from "path";
 import { envVars } from "../config/env";
 import AppError from "../errorHelpers/AppErrors";
+import { templates } from "./templates/emailTemplates";
 
 const transporter = nodemailer.createTransport({
-    // port: envVars.EMAIL_SENDER.SMTP_PORT,
-    secure: true,
-    auth: {
-        user: envVars.EMAIL_SENDER.SMTP_USER,
-        pass: envVars.EMAIL_SENDER.SMTP_PASS
-    },
-    port: Number(envVars.EMAIL_SENDER.SMTP_PORT),
-    host: envVars.EMAIL_SENDER.SMTP_HOST
-})
+  secure: true,
+  auth: {
+    user: envVars.EMAIL_SENDER.SMTP_USER,
+    pass: envVars.EMAIL_SENDER.SMTP_PASS,
+  },
+  port: Number(envVars.EMAIL_SENDER.SMTP_PORT),
+  host: envVars.EMAIL_SENDER.SMTP_HOST,
+});
 
 interface SendEmailOptions {
-    to: string,
-    subject: string;
-    templateName: string;
-    templateData?: Record<string, any>
-    attachments?: {
-        filename: string,
-        content: Buffer | string,
-        contentType: string
-    }[]
+  to: string;
+  subject: string;
+  templateName: string;
+  templateData?: Record<string, any>;
+  attachments?: {
+    filename: string;
+    content: Buffer | string;
+    contentType: string;
+  }[];
 }
 
 export const sendEmail = async ({
-    to,
-    subject,
-    templateName,
-    templateData,
-    attachments
+  to,
+  subject,
+  templateName,
+  templateData,
+  attachments,
 }: SendEmailOptions) => {
-    try {
-        const templatePath = path.join(__dirname, `templates/${templateName}.ejs`)
-        const html = await ejs.renderFile(templatePath, templateData)
-        const info = await transporter.sendMail({
-            from: envVars.EMAIL_SENDER.SMTP_FROM,
-            to: "mayeshamumtaz14@gmail.com",
-            subject: subject,
-            html: html,
-            attachments: attachments?.map(attachment => ({
-                filename: attachment.filename,
-                content: attachment.content,
-                contentType: attachment.contentType
-            }))
-        })
-        console.log(`\u2709\uFE0F Email sent to ${to}: ${info.messageId}`);
-    } catch (error: any) {
-        console.log("email sending error", error.message);
-        throw new AppError(401, "Email error")
+  try {
+
+    console.log({to,
+  subject,
+  templateName,
+  templateData,
+  attachments,})
+    // Get template string instead of file path
+    const templateString = templates[templateName];
+
+    if (!templateString) {
+      throw new Error(`Template '${templateName}' not found`);
     }
 
-}
+    // Render template from string
+    const html = ejs.render(templateString, templateData || {});
+
+    const info = await transporter.sendMail({
+      from: envVars.EMAIL_SENDER.SMTP_FROM,
+      to: to, // Changed from hardcoded email
+      subject: subject,
+      html: html,
+      attachments: attachments?.map((attachment) => ({
+        filename: attachment.filename,
+        content: attachment.content,
+        contentType: attachment.contentType,
+      })),
+    });
+
+    console.log(`✉️ Email sent to ${to}: ${info.messageId}`);
+  } catch (error: any) {
+    console.log("email sending error", error.message);
+    throw new AppError(401, "Email sending failed");
+  }
+};

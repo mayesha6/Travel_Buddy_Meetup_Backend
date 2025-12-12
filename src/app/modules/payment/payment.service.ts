@@ -47,7 +47,7 @@ const paymentSuccess = async (query: Record<string, string>) => {
     { transactionId: query.transactionId },
     { status: PAYMENT_STATUS.PAID, paymentGatewayData: query },
     { new: true }
-  );
+  ).populate("user");
 
   if (!payment) throw new AppError(httpStatus.NOT_FOUND, "Payment not found");
 
@@ -70,6 +70,7 @@ const paymentSuccess = async (query: Record<string, string>) => {
   }
 
   await Payment.findByIdAndUpdate(payment._id, { invoiceUrl: cloudResult.secure_url });
+
 
   await sendEmail({
     to: (payment.user as unknown as IUser).email,
