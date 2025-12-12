@@ -5,11 +5,31 @@ import { SubscriptionController } from "./subscriptions.controller";
 
 const router = Router();
 
-router.get("/", checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN), SubscriptionController.getSubscriptions);
-router.get("/:id", checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN), SubscriptionController.getSubscription);
+router.get(
+  "/",
+//   checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN),
+  SubscriptionController.getSubscriptions
+);
+router.get(
+  "/:id",
+  checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN),
+  SubscriptionController.getSubscription
+);
 
-router.post("/", checkAuth(Role.ADMIN), SubscriptionController.createSubscription);
-router.patch("/:id", checkAuth(Role.ADMIN, Role.PREMIUM, Role.USER), SubscriptionController.updateSubscription);
-router.delete("/:id", checkAuth(Role.ADMIN), SubscriptionController.deleteSubscription);
+router.post(
+  "/",
+  checkAuth(Role.ADMIN),
+  SubscriptionController.createSubscription
+);
+router.patch(
+  "/:id",
+  checkAuth(Role.ADMIN, Role.PREMIUM, Role.USER),
+  SubscriptionController.updateSubscription
+);
+router.delete(
+  "/:id",
+  checkAuth(Role.ADMIN),
+  SubscriptionController.deleteSubscription
+);
 
 export const SubscriptionRoutes = router;

@@ -14,13 +14,13 @@ const upload = multer();
 router.post("/register", UserControllers.createUser);
 router.get(
   "/all-users",
-  checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
+  // checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
   UserControllers.getAllUsers
 );
 router.get("/me", checkAuth(...Object.values(Role)), UserControllers.getMe);
 router.get(
   "/:id",
-  checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
+  // checkAuth(Role.PREMIUM, Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
   UserControllers.getSingleUser
 );
 
