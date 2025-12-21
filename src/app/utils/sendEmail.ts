@@ -66,7 +66,6 @@
 
 // }
 
-
 import ejs from "ejs";
 import nodemailer from "nodemailer";
 import { envVars } from "../config/env";
@@ -103,25 +102,18 @@ export const sendEmail = async ({
   attachments,
 }: SendEmailOptions) => {
   try {
-
-    console.log({to,
-  subject,
-  templateName,
-  templateData,
-  attachments,})
-    // Get template string instead of file path
+    console.log({ to, subject, templateName, templateData, attachments });
     const templateString = templates[templateName];
 
     if (!templateString) {
       throw new Error(`Template '${templateName}' not found`);
     }
 
-    // Render template from string
     const html = ejs.render(templateString, templateData || {});
 
     const info = await transporter.sendMail({
       from: envVars.EMAIL_SENDER.SMTP_FROM,
-      to: to, // Changed from hardcoded email
+      to: to,
       subject: subject,
       html: html,
       attachments: attachments?.map((attachment) => ({

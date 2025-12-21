@@ -6,8 +6,6 @@ dist/
 build/
 
 # Environment variables
-.env
-.env.local
 .env.*.local
 
 # Logs
@@ -22,7 +20,6 @@ yarn-error.log*
 Thumbs.db
 
 # IDE files
-.vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
@@ -45,3 +42,4 @@ nyc_output/
 
 
 .vercel
+config.bat
