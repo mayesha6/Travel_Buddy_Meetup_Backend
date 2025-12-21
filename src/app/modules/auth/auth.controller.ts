@@ -3,6 +3,7 @@
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import passport from "passport";
 import { envVars } from "../../config/env";
 import { catchAsync } from "../../utils/catchAsync";
@@ -79,14 +80,14 @@ const logout = catchAsync(
     // });
 
     const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as "lax",
-  path: "/",
-};
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as "lax",
+      path: "/",
+    };
 
-res.clearCookie("accessToken", cookieOptions);
-res.clearCookie("refreshToken", cookieOptions);
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
 
     sendResponse(res, {
       success: true,
@@ -116,20 +117,26 @@ const changePassword = catchAsync(
     });
   }
 );
-const resetPassword = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user;
 
-    await AuthServices.resetPassword(req.body, decodedToken as JwtPayload);
+const resetPassword = catchAsync(
+  async (req: Request, res: Response) => {
+    const newPassword = req.body.newPassword;
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token || !newPassword) {
+      throw new AppError(400, "Token and new password are required");
+    }
+
+    await AuthServices.resetPassword(token, newPassword);
 
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "Password Changed Successfully",
+      message: "Password reset successfully",
       data: null,
     });
   }
 );
+
 const setPassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user as JwtPayload;
